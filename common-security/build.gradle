@@ -1,0 +1,32 @@
+plugins {
+    id 'java'
+    id 'java-library'
+}
+
+group = 'info.manhhdtop.cloud'
+version = '0.0.1-SNAPSHOT'
+description = 'common-security'
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+ext {
+    set('lombokVersion', '1.18.42')
+}
+
+dependencies {
+    api project(':common-core')
+
+    implementation 'org.springframework.security:spring-security-core:7.0.0'
+
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    compileOnly 'org.jspecify:jspecify:1.0.0'
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+}

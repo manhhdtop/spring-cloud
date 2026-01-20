@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://${MARIADB_HOST:127.0.0.1}:${MARIADB_PORT:3306}/cloud_user?createDatabaseIfNotExist=true&characterEncoding=utf-8&serverTimezone=UTC
+    username: ${MARIADB_USER}
+    password: ${MARIADB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: none
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    drop-first: false

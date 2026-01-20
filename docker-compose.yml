@@ -1,0 +1,169 @@
+name: spring-cloud
+
+services:
+  mariadb:
+    image: mariadb:11
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-rootsecret}
+    ports:
+      - "${MARIADB_PORT:-3306}:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-admin123}
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    restart: unless-stopped
+
+  discovery:
+    build:
+      context: .
+      dockerfile: discovery/Dockerfile
+    ports:
+      - "${DISCOVERY_PORT:-8761}:8761"
+    restart: unless-stopped
+
+  config:
+    build:
+      context: .
+      dockerfile: config/Dockerfile
+    ports:
+      - "${CONFIG_PORT:-8888}:8888"
+    environment:
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: config
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+    depends_on:
+      - discovery
+    restart: unless-stopped
+
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    ports:
+      - "${GATEWAY_PORT:-8000}:8000"
+    environment:
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: gateway
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED: "false"
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config:8888
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: "6379"
+      SPRING_DATA_REDIS_USERNAME: ""
+      SPRING_DATA_REDIS_PASSWORD: ""
+    depends_on:
+      discovery:
+        condition: service_started
+      config:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  auth:
+    build:
+      context: .
+      dockerfile: auth/Dockerfile
+    ports:
+      - "${AUTH_PORT:-8001}:8001"
+    environment:
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: auth
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED: "false"
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config:8888
+      MARIADB_HOST: mariadb
+      MARIADB_PORT: "3306"
+      MARIADB_USER: root
+      MARIADB_PASSWORD: ${MARIADB_ROOT_PASSWORD:-rootsecret}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: "6379"
+      SPRING_DATA_REDIS_USERNAME: ""
+      SPRING_DATA_REDIS_PASSWORD: ""
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: "5672"
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-admin}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-admin123}
+    depends_on:
+      discovery:
+        condition: service_started
+      config:
+        condition: service_started
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  users:
+    build:
+      context: .
+      dockerfile: user/Dockerfile
+    ports:
+      - "${USERS_PORT:-8002}:8002"
+    environment:
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: users
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED: "false"
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config:8888
+      MARIADB_HOST: mariadb
+      MARIADB_PORT: "3306"
+      MARIADB_USER: root
+      MARIADB_PASSWORD: ${MARIADB_ROOT_PASSWORD:-rootsecret}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: "6379"
+      SPRING_DATA_REDIS_USERNAME: ""
+      SPRING_DATA_REDIS_PASSWORD: ""
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: "5672"
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-admin}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-admin123}
+    depends_on:
+      discovery:
+        condition: service_started
+      config:
+        condition: service_started
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  mariadb_data:

@@ -1,0 +1,12 @@
+rootProject.name = 'spring-cloud'
+
+include('auth')
+include('common-core')
+include('common-jpa')
+include('common-messaging')
+include('common-security')
+include('common-redis')
+include('config')
+include('discovery')
+include('gateway')
+include('user')

@@ -1,0 +1,41 @@
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+    ip-address: 127.0.0.1
+
+server:
+  port: 8888
+
+spring:
+  application:
+    name: config
+  profiles:
+    active: native
+  cloud:
+    config:
+      allow-override: true
+      discovery:
+        enabled: true
+      server:
+        bootstrap: true
+        native:
+          search-locations:
+            - classpath:/configs
+            - classpath:/configs/{application}
+        git:
+          uri: https://github.com/yourname/config-repo
+          clone-on-start: true
+          default-label: main
+          repos:
+            simple: ${spring.cloud.config.server.git.uri}
+            staging:
+              pattern: special*/dev*,*special*/dev*
+              uri: ${spring.cloud.config.server.git.uri}
+            develop:
+              pattern: dev*
+              uri: file:classpath:/configs
+          username: ${config.git.username:}
+          password: ${spring.git.password:}

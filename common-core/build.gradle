@@ -1,0 +1,39 @@
+plugins {
+    id 'java'
+    id 'java-library'
+}
+
+group = 'info.manhhdtop.cloud'
+version = '0.0.1-SNAPSHOT'
+description = 'common-core'
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+ext {
+    set('jacksonCoreVersion', '2.20.1')
+    set('lombokVersion', '1.18.42')
+}
+
+dependencies {
+    implementation 'jakarta.validation:jakarta.validation-api:3.1.1'
+    implementation "com.fasterxml.jackson.core:jackson-core:${jacksonCoreVersion}"
+    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonCoreVersion}"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonCoreVersion}"
+    implementation 'org.springframework:spring-context:7.0.7'
+    implementation 'org.springframework:spring-core:7.0.7'
+    implementation 'org.springframework:spring-web:7.0.7'
+    implementation 'org.apache.commons:commons-lang3:3.20.0'
+    implementation 'org.apache.commons:commons-text:1.14.0'
+    implementation 'org.slf4j:slf4j-api:2.0.17'
+
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+}

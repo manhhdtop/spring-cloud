@@ -1,0 +1,13 @@
+spring:
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      ssl:
+        enabled: false
+      username: manhhd
+      password: 123456a@A
+  devtools:
+    add-properties: true
+    restart:
+      enabled: false

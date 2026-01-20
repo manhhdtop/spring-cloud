@@ -1,0 +1,30 @@
+plugins {
+    id 'java'
+    id 'java-library'
+}
+
+group = 'info.manhhdtop.cloud'
+version = '0.0.1-SNAPSHOT'
+description = 'common-redis'
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+dependencies {
+    api project(':common-core')
+
+    implementation 'org.springframework.data:spring-data-redis:4.0.5'
+    implementation 'org.springframework:spring-context:7.0.1'
+    implementation 'org.slf4j:slf4j-api:2.0.17'
+
+    compileOnly 'org.projectlombok:lombok:1.18.42'
+    annotationProcessor 'org.projectlombok:lombok:1.18.42'
+}
+

@@ -1,0 +1,21 @@
+application:
+  jwt:
+    private-key: "secrets/jwt/private_key.pem"
+    public-key: "secrets/jwt/public_key.pem"
+    access-token-expiry-time: 3600000
+    refresh-token-expiry-time: 86400000
+    file: true
+
+spring:
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://${MARIADB_HOST:127.0.0.1}:${MARIADB_PORT:3306}/cloud_auth?createDatabaseIfNotExist=true&characterEncoding=utf-8&serverTimezone=UTC
+    username: ${MARIADB_USER}
+    password: ${MARIADB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: none
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    drop-first: false

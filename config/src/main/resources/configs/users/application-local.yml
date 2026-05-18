@@ -1,0 +1,3 @@
+spring:
+  datasource:
+    url: jdbc:mariadb://127.0.0.1:3306/cloud_user?createDatabaseIfNotExist=true&characterEncoding=utf-8&serverTimezone=UTC

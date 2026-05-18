@@ -16,4 +16,6 @@ public class LoginDto {
     private Long accessExpiresIn;
     private String refreshToken;
     private Long refreshExpiresIn;
+    @Builder.Default
+    private boolean requireChangePassword = false;
 }

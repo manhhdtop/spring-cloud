@@ -16,6 +16,7 @@ public class RequestContext {
     private Set<String> roles = new HashSet<>();
     private Set<String> permissions = new HashSet<>();
     private String requestId;
+    private boolean requireChangePassword;
 
     public static RequestContext get() {
         return CTX.get();

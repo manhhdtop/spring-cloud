@@ -14,13 +14,13 @@ public class JwtPropertyHolder {
     @Getter
     private static long refreshTokenExpiryTime;
     @Getter
-    private static boolean isFile;
+    private static boolean fromFile;
 
     public JwtPropertyHolder(JwtProperty jwtProperty) {
         JwtPropertyHolder.privateKey = jwtProperty.getPrivateKey();
         JwtPropertyHolder.publicKey = jwtProperty.getPublicKey();
         JwtPropertyHolder.accessTokenExpiryTime = jwtProperty.getAccessTokenExpiryTime();
         JwtPropertyHolder.refreshTokenExpiryTime = jwtProperty.getRefreshTokenExpiryTime();
-        JwtPropertyHolder.isFile = jwtProperty.isFile();
+        JwtPropertyHolder.fromFile = jwtProperty.isFromFile();
     }
 }

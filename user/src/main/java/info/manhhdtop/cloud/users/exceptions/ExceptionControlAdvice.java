@@ -1,7 +1,11 @@
 package info.manhhdtop.cloud.users.exceptions;
 
+import info.manhhdtop.cloud.common.core.constants.MessageKeys;
 import info.manhhdtop.cloud.common.core.dtos.ApiResponse;
 import info.manhhdtop.cloud.common.core.exceptions.ApplicationException;
+import info.manhhdtop.cloud.common.core.exceptions.RequireChangePasswordException;
+import info.manhhdtop.cloud.common.core.utils.ApiResponseFactory;
+import info.manhhdtop.cloud.common.core.utils.ValidationErrors;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -17,20 +21,21 @@ import org.springframework.web.server.ResponseStatusException;
 public class ExceptionControlAdvice {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest ignored) {
-        var errors = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(err -> err.getField() + " " + err.getDefaultMessage())
-                .toList();
+        var errors = ValidationErrors.from(ex.getBindingResult());
 
         var error = ApiResponse.error(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                "Arguments invalid",
+                MessageKeys.ARGUMENTS_INVALID,
                 errors
         );
 
         return ResponseEntity.badRequest().body(error);
+    }
+
+    @ExceptionHandler(RequireChangePasswordException.class)
+    public ResponseEntity<?> requireChangePassword(RequireChangePasswordException ignored) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponseFactory.requireChangePassword());
     }
 
     @ExceptionHandler(ApplicationException.class)

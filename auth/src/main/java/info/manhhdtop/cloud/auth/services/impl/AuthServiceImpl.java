@@ -3,7 +3,7 @@ package info.manhhdtop.cloud.auth.services.impl;
 import info.manhhdtop.cloud.auth.dtos.requests.ForgotPasswordRequest;
 import info.manhhdtop.cloud.auth.dtos.requests.LoginRequest;
 import info.manhhdtop.cloud.auth.dtos.requests.RegisterRequest;
-import info.manhhdtop.cloud.auth.dtos.requests.ResetPasswordRequest;
+import info.manhhdtop.cloud.auth.dtos.requests.ChangePasswordRequest;
 import info.manhhdtop.cloud.auth.dtos.responses.LoginDto;
 import info.manhhdtop.cloud.auth.models.Permission;
 import info.manhhdtop.cloud.auth.models.RefreshToken;
@@ -13,8 +13,10 @@ import info.manhhdtop.cloud.auth.repositories.RefreshTokenRepository;
 import info.manhhdtop.cloud.auth.repositories.UserRepository;
 import info.manhhdtop.cloud.auth.services.AuthService;
 import info.manhhdtop.cloud.auth.services.UserEventPublisher;
+import info.manhhdtop.cloud.auth.configs.JwtPropertyHolder;
 import info.manhhdtop.cloud.auth.utils.JwtUtil;
 import info.manhhdtop.cloud.common.core.constants.HeaderConstant;
+import info.manhhdtop.cloud.common.core.constants.MessageKeys;
 import info.manhhdtop.cloud.common.core.constants.JwtConstant;
 import info.manhhdtop.cloud.common.core.constants.UserStatus;
 import info.manhhdtop.cloud.common.core.dtos.PermissionDto;
@@ -81,6 +83,7 @@ public class AuthServiceImpl implements AuthService {
                 .id(user.getId())
                 .email(user.getEmail())
                 .status(user.getStatus())
+                .requireChangePassword(user.isRequireChangePassword())
                 .build();
 
         // Build roles and permissions DTOs
@@ -113,6 +116,7 @@ public class AuthServiceImpl implements AuthService {
                 .accessExpiresIn(accessTokenDto.getExpiryAt())
                 .refreshToken(refreshTokenDto.getToken())
                 .refreshExpiresIn(refreshTokenDto.getExpiryAt())
+                .requireChangePassword(user.isRequireChangePassword())
                 .build();
     }
 
@@ -145,7 +149,7 @@ public class AuthServiceImpl implements AuthService {
     public UserDto register(RegisterRequest request) {
         // Check if user already exists
         if (userRepository.findByEmail(request.email()).isPresent()) {
-            throw new ApplicationException("User with email " + request.email() + " already exists");
+            throw new ApplicationException(MessageKeys.USER_EMAIL_EXISTS, request.email());
         }
 
         // Create new user
@@ -187,7 +191,29 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void resetPassword(ResetPasswordRequest request) {
+    @Transactional
+    public void changePassword(ChangePasswordRequest request) {
+        var user = userRepository.findByEmail(request.email())
+                .orElseThrow(UnauthorizedException::getInstance);
+        if (!passwordEncoder.matches(request.oldPassword(), user.getPassword())) {
+            throw new ApplicationException(MessageKeys.PASSWORD_INCORRECT);
+        }
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        user.setRequireChangePassword(false);
+        userRepository.save(user);
+
+        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+        if (requestAttributes instanceof ServletRequestAttributes servletRequestAttributes) {
+            String token = extractTokenFromRequest(servletRequestAttributes.getRequest());
+            if (token != null) {
+                var sessionData = redisCredentialService.getCredential(token);
+                if (sessionData != null && sessionData.getUser() != null) {
+                    sessionData.getUser().setRequireChangePassword(false);
+                    redisCredentialService.storeCredential(
+                            token, sessionData, JwtPropertyHolder.getAccessTokenExpiryTime());
+                }
+            }
+        }
     }
 
     /**

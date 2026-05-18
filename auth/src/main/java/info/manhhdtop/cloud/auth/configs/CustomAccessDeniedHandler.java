@@ -1,5 +1,6 @@
 package info.manhhdtop.cloud.auth.configs;
 
+import info.manhhdtop.cloud.common.core.constants.MessageKeys;
 import info.manhhdtop.cloud.common.core.dtos.ApiResponse;
 import info.manhhdtop.cloud.common.core.utils.JsonUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +18,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     public void handle(@NonNull HttpServletRequest request, HttpServletResponse response, @NonNull AccessDeniedException exc) throws IOException {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN); // 403
         response.setContentType("application/json");
-        response.getWriter().write(JsonUtil.toJson(ApiResponse.error(HttpServletResponse.SC_FORBIDDEN, exc.getMessage())));
+        response.getWriter().write(JsonUtil.toJson(
+                ApiResponse.error(HttpServletResponse.SC_FORBIDDEN, MessageKeys.ACCESS_DENIED)));
     }
 }

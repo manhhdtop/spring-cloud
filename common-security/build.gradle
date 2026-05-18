@@ -24,7 +24,9 @@ ext {
 dependencies {
     api project(':common-core')
 
+    api 'org.springframework:spring-web:7.0.7'
     implementation 'org.springframework.security:spring-security-core:7.0.0'
+    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.1.0'
 
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     compileOnly 'org.jspecify:jspecify:1.0.0'

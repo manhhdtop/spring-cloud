@@ -1,22 +1,25 @@
 package info.manhhdtop.cloud.common.core.exceptions;
 
-import lombok.Getter;
+import info.manhhdtop.cloud.common.core.constants.MessageKeys;
+import info.manhhdtop.cloud.common.core.utils.MessageUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@Getter
 @ResponseStatus(HttpStatus.UNAUTHORIZED)
 @SuppressWarnings("unused")
 public class UnauthorizedException extends RuntimeException {
-    private static final String DEFAULT_MESSAGE = "Unauthorized";
-
     private static final UnauthorizedException INSTANCE = new UnauthorizedException();
 
     private UnauthorizedException() {
-        super(DEFAULT_MESSAGE);
+        super(MessageKeys.UNAUTHORIZED);
     }
 
     public static UnauthorizedException getInstance() {
         return INSTANCE;
+    }
+
+    @Override
+    public String getMessage() {
+        return MessageUtil.get(MessageKeys.UNAUTHORIZED);
     }
 }

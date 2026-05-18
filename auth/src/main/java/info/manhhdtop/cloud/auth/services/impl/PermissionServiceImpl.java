@@ -4,6 +4,7 @@ import info.manhhdtop.cloud.auth.dtos.requests.CreatePermissionRequest;
 import info.manhhdtop.cloud.auth.models.Permission;
 import info.manhhdtop.cloud.auth.repositories.PermissionRepository;
 import info.manhhdtop.cloud.auth.services.PermissionService;
+import info.manhhdtop.cloud.common.core.constants.MessageKeys;
 import info.manhhdtop.cloud.common.core.dtos.PermissionDto;
 import info.manhhdtop.cloud.common.core.exceptions.ApplicationException;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,7 @@ public class PermissionServiceImpl implements PermissionService {
     public PermissionDto create(CreatePermissionRequest request) {
         // Check if permission name already exists
         if (permissionRepository.findByName(request.name()).isPresent()) {
-            throw new ApplicationException("Permission with name '" + request.name() + "' already exists");
+            throw new ApplicationException(MessageKeys.PERMISSION_NAME_EXISTS, request.name());
         }
 
         Permission permission = new Permission();
@@ -40,7 +41,7 @@ public class PermissionServiceImpl implements PermissionService {
     @Override
     public PermissionDto getById(Long id) {
         Permission permission = permissionRepository.findById(id)
-                .orElseThrow(() -> new ApplicationException("Permission not found with id: " + id));
+                .orElseThrow(() -> new ApplicationException(MessageKeys.PERMISSION_NOT_FOUND_BY_ID, id));
         return mapToDto(permission);
     }
 
@@ -55,12 +56,12 @@ public class PermissionServiceImpl implements PermissionService {
     @Transactional
     public PermissionDto update(Long id, CreatePermissionRequest request) {
         Permission permission = permissionRepository.findById(id)
-                .orElseThrow(() -> new ApplicationException("Permission not found with id: " + id));
+                .orElseThrow(() -> new ApplicationException(MessageKeys.PERMISSION_NOT_FOUND_BY_ID, id));
 
         // Check if name is being changed and if new name already exists
         if (!permission.getName().equals(request.name())) {
             if (permissionRepository.findByName(request.name()).isPresent()) {
-                throw new ApplicationException("Permission with name '" + request.name() + "' already exists");
+                throw new ApplicationException(MessageKeys.PERMISSION_NAME_EXISTS, request.name());
             }
         }
 
@@ -76,7 +77,7 @@ public class PermissionServiceImpl implements PermissionService {
     @Transactional
     public void delete(Long id) {
         Permission permission = permissionRepository.findById(id)
-                .orElseThrow(() -> new ApplicationException("Permission not found with id: " + id));
+                .orElseThrow(() -> new ApplicationException(MessageKeys.PERMISSION_NOT_FOUND_BY_ID, id));
         permissionRepository.delete(permission);
     }
 

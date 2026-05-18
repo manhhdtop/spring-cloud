@@ -1,10 +1,22 @@
 name: spring-cloud
 
+networks:
+  spring-cloud:
+    driver: bridge
+
+x-spring-docker-env: &spring-docker-env
+  SPRING_PROFILES_ACTIVE: prod,native
+  EUREKA_URL: http://discovery:8761/eureka/
+  EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+  EUREKA_IP: host.docker.internal
+
 services:
   mariadb:
     image: mariadb:11
+    networks:
+      - spring-cloud
     environment:
-      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-rootsecret}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-123456a@A}
     ports:
       - "${MARIADB_PORT:-3306}:3306"
     volumes:
@@ -19,6 +31,8 @@ services:
 
   redis:
     image: redis:7-alpine
+    networks:
+      - spring-cloud
     ports:
       - "${REDIS_PORT:-6379}:6379"
     healthcheck:
@@ -30,6 +44,8 @@ services:
 
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
+    networks:
+      - spring-cloud
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-admin123}
@@ -48,6 +64,8 @@ services:
     build:
       context: .
       dockerfile: discovery/Dockerfile
+    networks:
+      - spring-cloud
     ports:
       - "${DISCOVERY_PORT:-8761}:8761"
     restart: unless-stopped
@@ -56,12 +74,12 @@ services:
     build:
       context: .
       dockerfile: config/Dockerfile
+    networks:
+      - spring-cloud
     ports:
       - "${CONFIG_PORT:-8888}:8888"
     environment:
-      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery:8761/eureka/
-      EUREKA_INSTANCE_HOSTNAME: config
-      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      <<: *spring-docker-env
     depends_on:
       - discovery
     restart: unless-stopped
@@ -70,18 +88,12 @@ services:
     build:
       context: .
       dockerfile: gateway/Dockerfile
+    networks:
+      - spring-cloud
     ports:
       - "${GATEWAY_PORT:-8000}:8000"
     environment:
-      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery:8761/eureka/
-      EUREKA_INSTANCE_HOSTNAME: gateway
-      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
-      SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED: "false"
-      SPRING_CONFIG_IMPORT: optional:configserver:http://config:8888
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: "6379"
-      SPRING_DATA_REDIS_USERNAME: ""
-      SPRING_DATA_REDIS_PASSWORD: ""
+      <<: *spring-docker-env
     depends_on:
       discovery:
         condition: service_started
@@ -95,26 +107,16 @@ services:
     build:
       context: .
       dockerfile: auth/Dockerfile
+    networks:
+      - spring-cloud
     ports:
       - "${AUTH_PORT:-8001}:8001"
     environment:
-      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery:8761/eureka/
-      EUREKA_INSTANCE_HOSTNAME: auth
-      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
-      SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED: "false"
-      SPRING_CONFIG_IMPORT: optional:configserver:http://config:8888
-      MARIADB_HOST: mariadb
-      MARIADB_PORT: "3306"
+      <<: *spring-docker-env
       MARIADB_USER: root
-      MARIADB_PASSWORD: ${MARIADB_ROOT_PASSWORD:-rootsecret}
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: "6379"
-      SPRING_DATA_REDIS_USERNAME: ""
-      SPRING_DATA_REDIS_PASSWORD: ""
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: "5672"
-      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-admin}
-      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-admin123}
+      MARIADB_PASSWORD: ${MARIADB_ROOT_PASSWORD:-123456a@A}
+      RABBITMQ_USER: ${RABBITMQ_USER:-admin}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-admin123}
     depends_on:
       discovery:
         condition: service_started
@@ -132,26 +134,16 @@ services:
     build:
       context: .
       dockerfile: user/Dockerfile
+    networks:
+      - spring-cloud
     ports:
       - "${USERS_PORT:-8002}:8002"
     environment:
-      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery:8761/eureka/
-      EUREKA_INSTANCE_HOSTNAME: users
-      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
-      SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED: "false"
-      SPRING_CONFIG_IMPORT: optional:configserver:http://config:8888
-      MARIADB_HOST: mariadb
-      MARIADB_PORT: "3306"
+      <<: *spring-docker-env
       MARIADB_USER: root
-      MARIADB_PASSWORD: ${MARIADB_ROOT_PASSWORD:-rootsecret}
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: "6379"
-      SPRING_DATA_REDIS_USERNAME: ""
-      SPRING_DATA_REDIS_PASSWORD: ""
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: "5672"
-      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-admin}
-      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-admin123}
+      MARIADB_PASSWORD: ${MARIADB_ROOT_PASSWORD:-123456a@A}
+      RABBITMQ_USER: ${RABBITMQ_USER:-admin}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-admin123}
     depends_on:
       discovery:
         condition: service_started

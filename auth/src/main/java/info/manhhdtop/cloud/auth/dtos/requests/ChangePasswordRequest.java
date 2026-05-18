@@ -5,7 +5,7 @@ import info.manhhdtop.cloud.common.core.validations.NotSameValue;
 import jakarta.validation.constraints.NotBlank;
 
 @NotSameValue(key1 = "oldPassword", key2 = "newPassword")
-public record ResetPasswordRequest(
+public record ChangePasswordRequest(
         @NotBlank
         String email,
         @NotBlank

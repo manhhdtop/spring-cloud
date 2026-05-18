@@ -1,10 +1,15 @@
 package info.manhhdtop.cloud.auth.exceptions;
 
+import info.manhhdtop.cloud.common.core.constants.ApiResponseCode;
+import info.manhhdtop.cloud.common.core.constants.MessageKeys;
 import info.manhhdtop.cloud.common.core.dtos.ApiResponse;
 import info.manhhdtop.cloud.common.core.exceptions.AccessDeninedException;
 import info.manhhdtop.cloud.common.core.exceptions.AccessTokenExpiredException;
 import info.manhhdtop.cloud.common.core.exceptions.ApplicationException;
+import info.manhhdtop.cloud.common.core.exceptions.RequireChangePasswordException;
 import info.manhhdtop.cloud.common.core.exceptions.UnauthorizedException;
+import info.manhhdtop.cloud.common.core.utils.ApiResponseFactory;
+import info.manhhdtop.cloud.common.core.utils.ValidationErrors;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -19,18 +24,27 @@ import org.springframework.web.server.ResponseStatusException;
 @RestControllerAdvice
 @Slf4j
 public class ExceptionControlAdvice {
+    private static @NonNull ResponseEntity<ApiResponse<Object>> getResponse(HttpStatus status,
+            ApiResponseCode code,
+            String ex) {
+        var error = ApiResponse.error(
+                status.value(),
+                code,
+                status.getReasonPhrase(),
+                ex
+        );
+
+        return ResponseEntity.status(status.value()).body(error);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest ignored) {
-        var errors = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(err -> err.getField() + " " + err.getDefaultMessage())
-                .toList();
+        var errors = ValidationErrors.from(ex.getBindingResult());
 
         var error = ApiResponse.error(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                "Arguments invalid",
+                MessageKeys.ARGUMENTS_INVALID,
                 errors
         );
 
@@ -39,33 +53,28 @@ public class ExceptionControlAdvice {
 
     @ExceptionHandler(ApplicationException.class)
     public ResponseEntity<?> handleBusiness(ApplicationException ex) {
-        return getResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+        return getResponse(HttpStatus.BAD_REQUEST, ApiResponseCode.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(AccessTokenExpiredException.class)
     public ResponseEntity<?> tokenExpired(AccessTokenExpiredException ex) {
-        return getResponse(HttpStatus.UNAUTHORIZED, ex.getMessage());
+        return getResponse(HttpStatus.UNAUTHORIZED, ApiResponseCode.UNAUTHORIZED, ex.getMessage());
     }
 
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<?> unauthorizedException(UnauthorizedException ex) {
         var status = HttpStatus.UNAUTHORIZED;
-        return getResponse(status, ex.getMessage());
-    }
-
-    private static @NonNull ResponseEntity<ApiResponse<Object>> getResponse(HttpStatus status, String ex) {
-        var error = ApiResponse.error(
-                status.value(),
-                status.getReasonPhrase(),
-                ex
-        );
-
-        return ResponseEntity.status(status.value()).body(error);
+        return getResponse(status, ApiResponseCode.UNAUTHORIZED, ex.getMessage());
     }
 
     @ExceptionHandler(AccessDeninedException.class)
     public ResponseEntity<?> accessDenied(AccessDeninedException ex) {
-        return getResponse(HttpStatus.FORBIDDEN, ex.getMessage());
+        return getResponse(HttpStatus.FORBIDDEN, ApiResponseCode.FORBIDDEN, ex.getMessage());
+    }
+
+    @ExceptionHandler(RequireChangePasswordException.class)
+    public ResponseEntity<?> requireChangePassword(RequireChangePasswordException ignored) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponseFactory.requireChangePassword());
     }
 
     @ExceptionHandler(ResponseStatusException.class)
@@ -83,6 +92,6 @@ public class ExceptionControlAdvice {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGeneric(Exception ex, HttpServletRequest ignored) {
-        return getResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+        return getResponse(HttpStatus.INTERNAL_SERVER_ERROR, ApiResponseCode.SERVER_ERROR, ex.getMessage());
     }
 }

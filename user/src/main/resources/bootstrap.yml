@@ -3,7 +3,7 @@ eureka:
     service-url:
       defaultZone: ${EUREKA.URL:http://localhost:8761/eureka/}
   instance:
-    prefer-ip-address: true
+    prefer-ip-address: ${EUREKA_INSTANCE_PREFER_IP_ADDRESS:true}
     ip-address: ${EUREKA.IP:127.0.0.1}
 
 spring:
@@ -14,4 +14,4 @@ spring:
       discovery:
         enabled: true
         service-id: config
-      profile: default,redis,rabbitmq
+      profile: ${SPRING_PROFILES_ACTIVE:local}

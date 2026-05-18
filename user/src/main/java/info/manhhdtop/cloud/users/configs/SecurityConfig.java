@@ -1,5 +1,6 @@
 package info.manhhdtop.cloud.users.configs;
 
+import info.manhhdtop.cloud.common.security.filters.RequireChangePasswordFilter;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -52,6 +53,7 @@ public class SecurityConfig {
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
         httpSecurity.httpBasic(AbstractHttpConfigurer::disable);
         httpSecurity.addFilterBefore(gatewayIdentityFilter, UsernamePasswordAuthenticationFilter.class);
+        httpSecurity.addFilterAfter(new RequireChangePasswordFilter(), GatewayIdentityFilter.class);
         httpSecurity.exceptionHandling(ex -> ex
                 .authenticationEntryPoint(customAuthenticationEntryPoint)  // 401
                 .accessDeniedHandler(customAccessDeniedHandler)  // 403

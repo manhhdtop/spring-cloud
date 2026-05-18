@@ -12,6 +12,7 @@ import info.manhhdtop.cloud.auth.repositories.RefreshTokenRepository;
 import info.manhhdtop.cloud.auth.repositories.UserRepository;
 import info.manhhdtop.cloud.auth.services.UserEventPublisher;
 import info.manhhdtop.cloud.auth.utils.JwtUtil;
+import info.manhhdtop.cloud.common.core.constants.MessageKeys;
 import info.manhhdtop.cloud.common.core.constants.Status;
 import info.manhhdtop.cloud.common.core.constants.UserStatus;
 import info.manhhdtop.cloud.common.core.dtos.UserDto;
@@ -142,6 +143,7 @@ class AuthServiceImplTest {
             assertEquals(3600L, result.getAccessExpiresIn());
             assertEquals("refresh-token-456", result.getRefreshToken());
             assertEquals(86400L, result.getRefreshExpiresIn());
+            assertFalse(result.isRequireChangePassword());
 
             // Verify interactions
             verify(userRepository).findByEmailWithRolesAndPermissions(validLoginRequest.email());
@@ -224,7 +226,7 @@ class AuthServiceImplTest {
         ApplicationException exception = assertThrows(ApplicationException.class,
                 () -> authService.register(registerRequest));
 
-        assertTrue(exception.getMessage().contains("already exists"));
+        assertEquals(MessageKeys.USER_EMAIL_EXISTS, exception.getMessageKey());
 
         verify(userRepository).findByEmail(registerRequest.email());
         verify(passwordEncoder, never()).encode(anyString());
@@ -269,6 +271,44 @@ class AuthServiceImplTest {
 
             // Then
             verify(redisCredentialService, never()).removeCredential(anyString());
+        } finally {
+            RequestContextHolder.resetRequestAttributes();
+        }
+    }
+
+    @Test
+    @DisplayName("Should return requireChangePassword when user must change password")
+    void testLogin_RequireChangePassword() {
+        testUser.setRequireChangePassword(true);
+        when(userRepository.findByEmailWithRolesAndPermissions(validLoginRequest.email()))
+                .thenReturn(Optional.of(testUser));
+        when(passwordEncoder.matches(validLoginRequest.password(), testUser.getPassword()))
+                .thenReturn(true);
+
+        TokenDto accessTokenDto = TokenDto.builder()
+                .token("access-token-123")
+                .expiryAt(3600L)
+                .build();
+        TokenDto refreshTokenDto = TokenDto.builder()
+                .token("refresh-token-456")
+                .expiryAt(86400L)
+                .build();
+
+        HttpServletRequest mockRequest = mock(HttpServletRequest.class);
+        when(mockRequest.getHeader("User-Agent")).thenReturn("Mozilla/5.0");
+        when(mockRequest.getRemoteAddr()).thenReturn("127.0.0.1");
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(mockRequest));
+
+        try (MockedStatic<JwtUtil> jwtUtilMock = mockStatic(JwtUtil.class)) {
+            jwtUtilMock.when(() -> JwtUtil.generateAccessToken(testUser)).thenReturn(accessTokenDto);
+            jwtUtilMock.when(() -> JwtUtil.generateRefreshToken(testUser)).thenReturn(refreshTokenDto);
+            when(refreshTokenRepository.save(any(RefreshToken.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            LoginDto result = authService.login(validLoginRequest);
+
+            assertTrue(result.isRequireChangePassword());
+            verify(redisCredentialService).storeCredential(eq("access-token-123"), argThat(session ->
+                    session.getUser() != null && session.getUser().isRequireChangePassword()), eq(3600L));
         } finally {
             RequestContextHolder.resetRequestAttributes();
         }

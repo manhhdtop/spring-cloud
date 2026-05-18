@@ -101,8 +101,8 @@ public final class JwtUtil {
 
     @PostConstruct
     public void init() throws Exception {
-        privateKey = KeyUtil.loadPrivateKey(JwtPropertyHolder.getPrivateKey(), JwtPropertyHolder.isFile());
-        publicKey = KeyUtil.loadPublicKey(JwtPropertyHolder.getPublicKey(), JwtPropertyHolder.isFile());
+        privateKey = KeyUtil.loadPrivateKey(JwtPropertyHolder.getPrivateKey(), JwtPropertyHolder.isFromFile());
+        publicKey = KeyUtil.loadPublicKey(JwtPropertyHolder.getPublicKey(), JwtPropertyHolder.isFromFile());
         ACCESS_TOKEN_EXPIRY_TIME = JwtPropertyHolder.getAccessTokenExpiryTime();
         REFRESH_TOKEN_EXPIRY_TIME = JwtPropertyHolder.getRefreshTokenExpiryTime();
     }

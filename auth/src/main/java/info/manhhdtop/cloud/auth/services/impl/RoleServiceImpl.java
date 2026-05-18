@@ -6,6 +6,7 @@ import info.manhhdtop.cloud.auth.models.Role;
 import info.manhhdtop.cloud.auth.repositories.PermissionRepository;
 import info.manhhdtop.cloud.auth.repositories.RoleRepository;
 import info.manhhdtop.cloud.auth.services.RoleService;
+import info.manhhdtop.cloud.common.core.constants.MessageKeys;
 import info.manhhdtop.cloud.common.core.dtos.PermissionDto;
 import info.manhhdtop.cloud.common.core.dtos.RoleDto;
 import info.manhhdtop.cloud.common.core.exceptions.ApplicationException;
@@ -30,7 +31,7 @@ public class RoleServiceImpl implements RoleService {
     public RoleDto create(CreateRoleRequest request) {
         // Check if role name already exists
         if (roleRepository.findByName(request.name()).isPresent()) {
-            throw new ApplicationException("Role with name '" + request.name() + "' already exists");
+            throw new ApplicationException(MessageKeys.ROLE_NAME_EXISTS, request.name());
         }
 
         Role role = new Role();
@@ -41,7 +42,7 @@ public class RoleServiceImpl implements RoleService {
         if (request.permissionIds() != null && !request.permissionIds().isEmpty()) {
             Set<Permission> permissions = new HashSet<>(permissionRepository.findAllById(request.permissionIds()));
             if (permissions.size() != request.permissionIds().size()) {
-                throw new ApplicationException("Some permissions not found");
+                throw new ApplicationException(MessageKeys.PERMISSIONS_NOT_FOUND);
             }
             role.setPermissions(permissions);
         }
@@ -53,7 +54,7 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public RoleDto getById(Long id) {
         Role role = roleRepository.findById(id)
-                .orElseThrow(() -> new ApplicationException("Role not found with id: " + id));
+                .orElseThrow(() -> new ApplicationException(MessageKeys.ROLE_NOT_FOUND_BY_ID, id));
         return mapToDto(role);
     }
 
@@ -68,12 +69,12 @@ public class RoleServiceImpl implements RoleService {
     @Transactional
     public RoleDto update(Long id, CreateRoleRequest request) {
         Role role = roleRepository.findById(id)
-                .orElseThrow(() -> new ApplicationException("Role not found with id: " + id));
+                .orElseThrow(() -> new ApplicationException(MessageKeys.ROLE_NOT_FOUND_BY_ID, id));
 
         // Check if name is being changed and if new name already exists
         if (!role.getName().equals(request.name())) {
             if (roleRepository.findByName(request.name()).isPresent()) {
-                throw new ApplicationException("Role with name '" + request.name() + "' already exists");
+                throw new ApplicationException(MessageKeys.ROLE_NAME_EXISTS, request.name());
             }
         }
 
@@ -84,7 +85,7 @@ public class RoleServiceImpl implements RoleService {
         if (request.permissionIds() != null) {
             Set<Permission> permissions = new HashSet<>(permissionRepository.findAllById(request.permissionIds()));
             if (permissions.size() != request.permissionIds().size()) {
-                throw new ApplicationException("Some permissions not found");
+                throw new ApplicationException(MessageKeys.PERMISSIONS_NOT_FOUND);
             }
             role.setPermissions(permissions);
         }
@@ -97,7 +98,7 @@ public class RoleServiceImpl implements RoleService {
     @Transactional
     public void delete(Long id) {
         Role role = roleRepository.findById(id)
-                .orElseThrow(() -> new ApplicationException("Role not found with id: " + id));
+                .orElseThrow(() -> new ApplicationException(MessageKeys.ROLE_NOT_FOUND_BY_ID, id));
         roleRepository.delete(role);
     }
 
@@ -105,11 +106,11 @@ public class RoleServiceImpl implements RoleService {
     @Transactional
     public RoleDto assignPermissions(Long roleId, List<Long> permissionIds) {
         Role role = roleRepository.findById(roleId)
-                .orElseThrow(() -> new ApplicationException("Role not found with id: " + roleId));
+                .orElseThrow(() -> new ApplicationException(MessageKeys.ROLE_NOT_FOUND_BY_ID, roleId));
 
         Set<Permission> permissions = new HashSet<>(permissionRepository.findAllById(permissionIds));
         if (permissions.size() != permissionIds.size()) {
-            throw new ApplicationException("Some permissions not found");
+            throw new ApplicationException(MessageKeys.PERMISSIONS_NOT_FOUND);
         }
 
         role.setPermissions(permissions);

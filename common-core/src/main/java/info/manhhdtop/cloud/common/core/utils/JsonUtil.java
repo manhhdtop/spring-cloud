@@ -21,12 +21,12 @@ public class JsonUtil {
     public static final ObjectMapper OBJECT_MAPPER;
 
     static {
-        OBJECT_MAPPER = new JsonMapper();
-        OBJECT_MAPPER.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        OBJECT_MAPPER.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
-        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-        OBJECT_MAPPER.registerModule(new JavaTimeModule());
+        OBJECT_MAPPER = JsonMapper.builder()
+                .serializationInclusion(JsonInclude.Include.NON_NULL)
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .addModule(new JavaTimeModule())
+                .build();
         OBJECT_MAPPER.findAndRegisterModules();
         OBJECT_MAPPER.addMixIn(Throwable.class, ThrowableMixin.class);
     }

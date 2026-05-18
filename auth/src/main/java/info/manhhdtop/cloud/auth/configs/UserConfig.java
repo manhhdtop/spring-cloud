@@ -71,6 +71,7 @@ public class UserConfig implements ApplicationListener<ContextRefreshedEvent> {
         adminUser.setPassword(encodedPassword);
         adminUser.setStatus(UserStatus.INIT);
         adminUser.setEmailVerified(true);
+        adminUser.setRequireChangePassword(true);
 
         adminUser = userRepository.save(adminUser);
 

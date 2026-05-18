@@ -72,6 +72,7 @@ public class GatewayIdentityFilter extends OncePerRequestFilter {
 
     private static void populateContextFromSession(RequestContext ctx, SessionData sessionData) {
         ctx.setUserId(sessionData.getUser().getId());
+        ctx.setRequireChangePassword(sessionData.getUser().isRequireChangePassword());
         ctx.setRoles(toRoleNames(sessionData.getRoles()));
         ctx.setPermissions(toPermissionNames(sessionData.getPermissions()));
     }

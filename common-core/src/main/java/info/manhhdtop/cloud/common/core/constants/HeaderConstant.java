@@ -8,4 +8,6 @@ public interface HeaderConstant {
     /** Comma-separated permission names (gateway or internal calls). */
     String X_SESSION_ID = "X-Session-Id";
     String X_REQUEST_ID = "X-Request-Id";
+    /** Preferred locale: {@code vi} or {@code en}. Overrides Accept-Language when set. */
+    String X_LOCALE = "X-Locale";
 }

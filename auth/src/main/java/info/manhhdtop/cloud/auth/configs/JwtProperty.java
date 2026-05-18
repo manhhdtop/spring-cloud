@@ -14,5 +14,6 @@ public class JwtProperty {
     private String publicKey;
     private long accessTokenExpiryTime;
     private long refreshTokenExpiryTime;
-    private boolean isFile;
+    /** When true, {@link #privateKey} and {@link #publicKey} are classpath resource paths. */
+    private boolean fromFile;
 }

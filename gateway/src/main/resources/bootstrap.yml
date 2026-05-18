@@ -14,4 +14,4 @@ spring:
       discovery:
         enabled: true
         service-id: config
-      profile: default,redis
+      profile: ${SPRING_PROFILES_ACTIVE:local}

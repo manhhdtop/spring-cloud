@@ -12,7 +12,7 @@ public interface ServiceConstant {
         String LOGOUT = "logout";
         String REFRESH_TOKEN = "refresh-token";
         String FORGOT_PASSWORD = "forgot-password";
-        String RESET_PASSWORD = "reset-password";
+        String CHANGE_PASSWORD = "change-password";
         String VALIDATE = "validate";
     }
 

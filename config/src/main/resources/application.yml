@@ -1,10 +1,10 @@
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
   instance:
-    prefer-ip-address: true
-    ip-address: 127.0.0.1
+    prefer-ip-address: ${EUREKA_INSTANCE_PREFER_IP_ADDRESS:true}
+    ip-address: ${EUREKA_IP:127.0.0.1}
 
 server:
   port: 8888
@@ -31,11 +31,20 @@ spring:
           default-label: main
           repos:
             simple: ${spring.cloud.config.server.git.uri}
-            staging:
+            special-staging:
               pattern: special*/dev*,*special*/dev*
               uri: ${spring.cloud.config.server.git.uri}
-            develop:
-              pattern: dev*
+            local:
+              pattern: local
+              uri: file:classpath:/configs
+            dev:
+              pattern: dev
+              uri: file:classpath:/configs
+            staging:
+              pattern: staging
+              uri: file:classpath:/configs
+            prod:
+              pattern: prod
               uri: file:classpath:/configs
           username: ${config.git.username:}
           password: ${spring.git.password:}

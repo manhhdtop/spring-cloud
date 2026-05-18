@@ -1,22 +1,25 @@
 package info.manhhdtop.cloud.common.core.exceptions;
 
-import lombok.Getter;
+import info.manhhdtop.cloud.common.core.constants.MessageKeys;
+import info.manhhdtop.cloud.common.core.utils.MessageUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@Getter
 @ResponseStatus(HttpStatus.FORBIDDEN)
 @SuppressWarnings("unused")
 public class AccessDeninedException extends RuntimeException {
-    private static final String DEFAULT_MESSAGE = "Access denied";
-
     private static final AccessDeninedException INSTANCE = new AccessDeninedException();
 
     private AccessDeninedException() {
-        super(DEFAULT_MESSAGE);
+        super(MessageKeys.ACCESS_DENIED);
     }
 
     public static AccessDeninedException getInstance() {
         return INSTANCE;
+    }
+
+    @Override
+    public String getMessage() {
+        return MessageUtil.get(MessageKeys.ACCESS_DENIED);
     }
 }

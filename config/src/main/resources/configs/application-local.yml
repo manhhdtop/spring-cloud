@@ -1,21 +1,26 @@
 spring:
+  devtools:
+    add-properties: true
+    restart:
+      enabled: false
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      ssl:
+        enabled: false
+      username: manhhd
+      password: 123456a@A
   rabbitmq:
-    # Connection settings
     host: localhost
     port: 5672
     username: admin
     password: admin123
     virtual-host: /
-
-    # Connection timeout and retry settings
     connection-timeout: 60000
     requested-heartbeat: 60
-
-    # Publisher confirms and returns
     publisher-confirm-type: correlated
     publisher-returns: true
-
-    # Template settings
     template:
       mandatory: true
       retry:
@@ -24,8 +29,6 @@ spring:
         max-attempts: 3
         max-interval: 10000
         multiplier: 2.0
-
-    # Listener settings
     listener:
       simple:
         acknowledge-mode: auto
@@ -39,13 +42,3 @@ spring:
           max-interval: 10000
           multiplier: 2.0
         default-requeue-rejected: false
-
-    # SSL settings (uncomment if using SSL)
-    # ssl:
-    #   enabled: true
-    #   key-store: classpath:keystore.p12
-    #   key-store-password: password
-    #   key-store-type: PKCS12
-    #   trust-store: classpath:truststore.p12
-    #   trust-store-password: password
-    #   trust-store-type: PKCS12

@@ -31,6 +31,7 @@ public class User extends AuditModel {
     public static final String PASSWORD = "password";
     public static final String IS_EMAIL_VERIFIED = "is_email_verified";
     public static final String STATUS = "status";
+    public static final String REQUIRE_CHANGE_PASSWORD = "require_change_password";
     public static final String USER_ID = "user_id";
     public static final String ROLE_ID = "role_id";
 
@@ -47,6 +48,9 @@ public class User extends AuditModel {
     @Column(name = STATUS)
     private UserStatus status = UserStatus.ACTIVE;
 
+    @Column(name = REQUIRE_CHANGE_PASSWORD)
+    private boolean requireChangePassword = false;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = USER_ROLE_TABLE,
@@ -59,6 +63,7 @@ public class User extends AuditModel {
         var dto = new UserDto();
         dto.setEmail(email);
         dto.setStatus(status);
+        dto.setRequireChangePassword(requireChangePassword);
         return dto;
     }
 }

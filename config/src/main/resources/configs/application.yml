@@ -1,5 +1,0 @@
-spring:
-  devtools:
-    add-properties: true
-    restart:
-      enabled: false

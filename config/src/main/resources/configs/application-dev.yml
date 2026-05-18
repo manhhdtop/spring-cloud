@@ -1,0 +1,44 @@
+spring:
+  devtools:
+    add-properties: true
+    restart:
+      enabled: false
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      ssl:
+        enabled: false
+      username: ${REDIS_USERNAME:}
+      password: ${REDIS_PASSWORD:}
+  rabbitmq:
+    host: ${RABBITMQ_HOST:rabbitmq}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:admin}
+    password: ${RABBITMQ_PASSWORD:admin123}
+    virtual-host: /
+    connection-timeout: 60000
+    requested-heartbeat: 60
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    template:
+      mandatory: true
+      retry:
+        enabled: true
+        initial-interval: 1000
+        max-attempts: 3
+        max-interval: 10000
+        multiplier: 2.0
+    listener:
+      simple:
+        acknowledge-mode: auto
+        concurrency: 1
+        max-concurrency: 10
+        prefetch: 1
+        retry:
+          enabled: true
+          initial-interval: 1000
+          max-attempts: 3
+          max-interval: 10000
+          multiplier: 2.0
+        default-requeue-rejected: false

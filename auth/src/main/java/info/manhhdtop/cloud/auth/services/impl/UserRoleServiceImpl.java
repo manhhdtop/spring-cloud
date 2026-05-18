@@ -6,6 +6,7 @@ import info.manhhdtop.cloud.auth.models.User;
 import info.manhhdtop.cloud.auth.repositories.RoleRepository;
 import info.manhhdtop.cloud.auth.repositories.UserRepository;
 import info.manhhdtop.cloud.auth.services.UserRoleService;
+import info.manhhdtop.cloud.common.core.constants.MessageKeys;
 import info.manhhdtop.cloud.common.core.dtos.PermissionDto;
 import info.manhhdtop.cloud.common.core.dtos.RoleDto;
 import info.manhhdtop.cloud.common.core.exceptions.ApplicationException;
@@ -29,11 +30,11 @@ public class UserRoleServiceImpl implements UserRoleService {
     @Transactional
     public void assignRolesToUser(AssignRoleToUserRequest request) {
         User user = userRepository.findById(request.userId())
-                .orElseThrow(() -> new ApplicationException("User not found with id: " + request.userId()));
+                .orElseThrow(() -> new ApplicationException(MessageKeys.USER_NOT_FOUND_BY_ID, request.userId()));
 
         Set<Role> roles = new HashSet<>(roleRepository.findAllById(request.roleIds()));
         if (roles.size() != request.roleIds().size()) {
-            throw new ApplicationException("Some roles not found");
+            throw new ApplicationException(MessageKeys.ROLES_NOT_FOUND);
         }
 
         // Merge with existing roles
@@ -45,7 +46,7 @@ public class UserRoleServiceImpl implements UserRoleService {
     @Transactional
     public void removeRolesFromUser(Long userId, List<Long> roleIds) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ApplicationException("User not found with id: " + userId));
+                .orElseThrow(() -> new ApplicationException(MessageKeys.USER_NOT_FOUND_BY_ID, userId));
 
         Set<Role> rolesToRemove = new HashSet<>(roleRepository.findAllById(roleIds));
         user.getRoles().removeAll(rolesToRemove);
@@ -55,7 +56,7 @@ public class UserRoleServiceImpl implements UserRoleService {
     @Override
     public List<RoleDto> getUserRoles(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ApplicationException("User not found with id: " + userId));
+                .orElseThrow(() -> new ApplicationException(MessageKeys.USER_NOT_FOUND_BY_ID, userId));
 
         return user.getRoles().stream()
                 .map(this::mapRoleToDto)
@@ -65,7 +66,7 @@ public class UserRoleServiceImpl implements UserRoleService {
     @Override
     public List<RoleDto> getAvailableRoles(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ApplicationException("User not found with id: " + userId));
+                .orElseThrow(() -> new ApplicationException(MessageKeys.USER_NOT_FOUND_BY_ID, userId));
 
         Set<Long> userRoleIds = user.getRoles().stream()
                 .map(Role::getId)

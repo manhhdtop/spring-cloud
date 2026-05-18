@@ -18,4 +18,5 @@ public class UserDto {
     private String avatar;
     private Gender gender;
     private UserStatus status;
+    private boolean requireChangePassword;
 }
